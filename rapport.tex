@@ -1,4 +1,4 @@
-% rapport.tex
+% rapport.tex (corrigé)
 \documentclass[12pt,a4paper]{report}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -18,6 +18,7 @@
 \usepackage{listings}
 \usepackage{titling}
 \usepackage{setspace}
+\usepackage{ifthen} % pour tests conditionnels de fichiers
 
 % Header / Footer
 \pagestyle{fancy}
@@ -76,16 +77,15 @@
 % -------------------------
 \chapter*{Résumé}
 \addcontentsline{toc}{chapter}{Résumé}
-Ce rapport présente les solutions aux exercices de la \textbf{Leçon 5 -- Structural Patterns} :
+Ce rapport présente les solutions aux exercices de la \textbf{Leçon 5 -- Structural Patterns} \cite{lesson5} :
 implémentation en Python du \textbf{Composite} (arbre du menu), implémentation d'un itérateur récursif
-(concept Iterator) et exemple \textbf{Head First} (Decorator — Starbuzz Coffee).
-Le dépôt contient les sources, diagrammes et tests. Le code important est inclus directement dans ce rapport via \texttt{\textbackslash lstinputlisting} (extraits) ; les fichiers complets sont référencés par des liens GitHub pour consultation rapide.
+(concept Iterator) et exemple \textbf{Head First} (Decorator — Starbuzz Coffee) \cite{headfirst2004}.
+Le dépôt contient les sources, diagrammes et tests. Le code important est inclus directement dans ce rapport via \texttt{\textbackslash lstinputlisting} (extraits) ; les fichiers complets sont référencés par des liens GitHub pour consultation rapide \cite{repo}.
 
 % -------------------------
 \chapter{Introduction et contexte}
 \label{ch:intro}
-Les patterns de conception (Design Patterns) sont des solutions réutilisables à des problèmes récurrents en conception orientée objet.
-Ce travail se concentre sur les \emph{patrons structurels} (Composite, Iterator, Decorator) illustrés dans la Leçon 5.
+Les patterns de conception (Design Patterns) sont des solutions réutilisables à des problèmes récurrents en conception orientée objet (GoF) \cite{gof1995}. Ce travail se concentre sur les \emph{patrons structurels} (Composite, Iterator, Decorator) illustrés dans la Leçon 5 \cite{lesson5}.
 Les exercices demandent :
 \begin{enumerate}
   \item Reproduire en Python l'arbre du menu (Composite) et implémenter, dans la classe représentant le serveur (\emph{Waitress}), une méthode permettant d'afficher un menu spécifique.
@@ -98,20 +98,20 @@ Les exercices demandent :
 \label{ch:composite}
 
 \section{Problème et intention}
-Le problème est de représenter une hiérarchie partie-tout (menus et items) où le client peut traiter uniformément les feuilles (plats) et les composites (sous-menus). L'intention du patron Composite est de composer des objets en structures arborescentes et de permettre aux clients d'interagir de façon uniforme.
+Le problème est de représenter une hiérarchie partie-tout (menus et items) où le client peut traiter uniformément les feuilles (plats) et les composites (sous-menus). L'intention du patron Composite est de composer des objets en structures arborescentes et de permettre aux clients d'interagir de façon uniforme \cite{gof1995}.
 
 \section{Modèle conceptuel appliqué au menu}
 La structure implémentée contient :
 \begin{itemize}
-  \item \textbf{MenuComponent} : interface abstraite (API commune). (voir \texttt{src/menu_composite/menu_component.py})
-  \item \textbf{MenuItem} : feuille (plat).
-  \item \textbf{Menu} : composite, contenant des enfants.
-  \item \textbf{Waitress} : le serveur (client) qui utilise l'API pour afficher, filtrer, et rechercher.
+  \item \textbf{MenuComponent} : interface abstraite (API commune). (voir \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_component.py}{\texttt{src/menu_composite/menu_component.py}})
+  \item \textbf{MenuItem} : feuille (plat). (voir \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_item.py}{\texttt{src/menu_composite/menu_item.py}})
+  \item \textbf{Menu} : composite, contenant des enfants. (voir \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu.py}{\texttt{src/menu_composite/menu.py}})
+  \item \textbf{Waitress} : le serveur (client) qui utilise l'API pour afficher, filtrer, et rechercher. (voir \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/waitress.py}{\texttt{src/menu_composite/waitress.py}})
 \end{itemize}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{docs/diagrams/menu_example.png}
+  \includegraphics{docs/diagrams/menu_example.png}
   \caption{Schéma de l'arbre du menu (Composite)}
   \label{fig:menu_tree}
 \end{figure}
@@ -131,7 +131,7 @@ La classe \texttt{Waitress} implémente la fonctionnalité demandée : afficher 
 \lstinputlisting[caption={waitress.py — Serveur (méthodes d'affichage, recherche et print\_specific\_menu)}, label={lst:waitress}]{src/menu_composite/waitress.py}
 
 \section{Discussion et alternatives}
-Le choix d'utiliser une interface commune simplifie le code client. Pour de très grands arbres, considérer une sérialisation/lazy-loading ou l'utilisation d'une base PostGIS/BD si les menus sont volumineux ou dynamiques (hors sujet ici).
+Le choix d'utiliser une interface commune simplifie le code client. Pour de très grands arbres, considérer une sérialisation/lazy-loading ou l'utilisation d'une base (ex. PostgreSQL/PostGIS) si les menus sont volumineux ou dynamiques.
 
 % -------------------------
 \chapter{Patron Iterator — théorie et application au menu}
@@ -149,7 +149,7 @@ Conformément au patron :
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.75\textwidth]{docs/diagrams/Schema-genral-iterator.png}
+  \includegraphics{docs/diagrams/Schema-genral-iterator.png}
   \caption{Schéma général du pattern Iterator}
   \label{fig:iterator_general}
 \end{figure}
@@ -160,19 +160,24 @@ Le fichier suivant implémente un itérateur en profondeur (DFS) qui permet de p
 
 \section{Usage dans la Waitress}
 La Waitress utilise \texttt{CompositeIterator} pour lister tous les éléments, trouver un sous-menu par nom et lister les plats végétariens.
+Voir le code complet : \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/composite_iterator.py}{\texttt{composite\_iterator.py}}.
 
 % -------------------------
 \chapter{Head First Design Patterns — approche et exemple (Decorator)}
 \label{ch:headfirst}
 
 \section{Approche Head First}
-La série \emph{Head First} privilégie l'apprentissage visuel et par l'exemple. L'exemple classique du livre pour le pattern \emph{Decorator} est \emph{Starbuzz Coffee} — un objet boisson décoré dynamiquement par des condiments.
+La série \emph{Head First} privilégie l'apprentissage visuel et par l'exemple. L'exemple classique du livre pour le pattern \emph{Decorator} est \emph{Starbuzz Coffee} — un objet boisson décoré dynamiquement par des condiments \cite{headfirst2004}.
 
 \section{Schéma}
 \begin{figure}[H]
   \centering
-  % si tu veux ajouter un schéma PlantUML, tu peux générer l'image et la mettre dans docs/diagrams
-  \includegraphics[width=0.7\textwidth]{docs/diagrams/schema_headfirst_decorator.png}
+  % affiche l'image seulement si elle existe dans le dépôt
+  \IfFileExists{docs/diagrams/schema_headfirst_decorator.png}{
+    \includegraphics[width=0.7\textwidth]{docs/diagrams/schema_headfirst_decorator.png}
+  }{
+    \fbox{\parbox[c][4cm][c]{0.7\textwidth}{\centering Image \texttt{schema\_headfirst\_decorator.png} manquante. Ajoutez-la dans docs/diagrams/ pour l'afficher.}}
+  }
   \caption{Schéma conceptuel — Decorator (Head First)}
   \label{fig:decorator}
 \end{figure}
@@ -182,7 +187,7 @@ La série \emph{Head First} privilégie l'apprentissage visuel et par l'exemple.
 
 \lstinputlisting[caption={condiments.py — Condiment Decorators (Head First)}, label={lst:condiments}]{src/headfirst_decorator/condiments.py}
 
-Exécution de démonstration : \texttt{src/headfirst_decorator/starbuzz\_demo.py}.
+Exécution de démonstration : \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/headfirst_decorator/starbuzz_demo.py}{\texttt{starbuzz\_demo.py}}.
 
 % -------------------------
 \chapter{Résultats, tests et mode d'emploi}
@@ -208,29 +213,29 @@ python src/menu_composite/demo.py
 pip install pytest
 pytest -q
 \end{verbatim}
-Le jeu de tests se trouve dans \texttt{tests/test\_menu.py}.
+Le jeu de tests se trouve dans \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/tests/test_menu.py}{\texttt{tests/test\_menu.py}}.
 
 \section{Liens vers le code complet (GitHub)}
 Les fichiers complets (pour consultation ou revue rapide) sont disponibles à ces URLs :
 \begin{itemize}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu.py}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_item.py}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_component.py}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/composite_iterator.py}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/waitress.py}
-  \item \url{https://github.com/Tiger-Foxx/design-patterns-impl/tree/main/src/headfirst_decorator}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu.py}{\texttt{menu.py}}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_item.py}{\texttt{menu_item.py}}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/menu_component.py}{\texttt{menu_component.py}}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/composite_iterator.py}{\texttt{composite_iterator.py}}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/blob/main/src/menu_composite/waitress.py}{\texttt{waitress.py}}
+  \item \href{https://github.com/Tiger-Foxx/design-patterns-impl/tree/main/src/headfirst_decorator}{\texttt{headfirst\_decorator/}}
 \end{itemize}
 
 % -------------------------
 \chapter{Conclusion}
 Le travail satisfait les exigences pédagogiques : 
 \begin{itemize}
-  \item Reproduction de l'arbre du menu (Composite) en Python.
+  \item Reproduction de l'arbre du menu (Composite) en Python \cite{lesson5}.
   \item Implémentation d'un itérateur récursif (Iterator) adapté à la structure.
   \item Méthode du serveur (Waitress) pour afficher un menu spécifique.
   \item Exemple Head First (Decorator) avec code d'illustration.
 \end{itemize}
-Le dépôt contient les codes, diagrammes et tests ; le rapport intègre les extraits essentiels et référence les sources complètes sur GitHub.
+Le dépôt contient les codes, diagrammes et tests ; le rapport intègre les extraits essentiels et référence les sources complètes sur GitHub \cite{repo,gof1995,headfirst2004}.
 
 % -------------------------
 \clearpage
@@ -242,6 +247,7 @@ Le dépôt contient les codes, diagrammes et tests ; le rapport intègre les ext
 % -------------------------
 \clearpage
 \addcontentsline{toc}{chapter}{Bibliographie}
+\nocite{*} % force l'affichage de toutes les entrées de references.bib
 \bibliographystyle{plain}
 \bibliography{references}
 
